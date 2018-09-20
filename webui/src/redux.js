@@ -1,7 +1,8 @@
 import { createStore, combineReducers } from 'redux';
 import io from 'socket.io-client';
 
-const socketUrl = 'http://192.168.1.105:9010';
+const socketUrl = 'http://localhost:9010'; //ip de teste, so funciona na propria maquina
+// const socketUrl = 'http://192.168.2.100:9010'; //Ip notebook lucas no roteador
 // const socketUrl = 'https://chat-redes-test.herokuapp.com/9010';
 const socket = io(socketUrl);
 

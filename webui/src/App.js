@@ -69,7 +69,7 @@ class ChatRoom extends Component {
   render () {
     return (
       <div
-        style={ { width: '100%', display: 'flex', flexdirection: 'row' } }
+        style={ { width: '100%' } }
         className='chat-room-wrapper'>
 
         <div
@@ -153,7 +153,7 @@ class App extends Component {
         <div className="App">
           <header className="App-header">
             <img src={logo} className="App-logo" alt="logo" />
-            <h1 className="App-title">Bem vindo ao Fauschat aaaaaaaaa</h1>
+            <h1 className="App-title">Bem vindo ao Fauschat</h1>
           </header>
 
           <AppContainer />
