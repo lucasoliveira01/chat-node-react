@@ -33,11 +33,15 @@ const actions = {
 
   user: {
     tryLogin (username, socket) {
-      socket.emit('try-login', username);
+      socket.emit('try-add-user', username);
     },
 
-    login (username) {
-      dispatch({ type: actionTypes.user.login, username });
+    login (response) {
+      const {
+        user,
+        allUsers,
+      } = response
+      dispatch({ type: actionTypes.user.login, username: user.name, users: allUsers });
     },
 
     registerServer (ip) {
@@ -46,8 +50,8 @@ const actions = {
       socket.on('connect_failed', () => console.log('Connection Failed'));
 
       socket.on('all-users', actions.chatUsers.load);
-      socket.on('add-user', actions.chatUsers.add);
-      socket.on('user-disconnect', actions.chatUsers.remove);
+      socket.on('user-add', actions.chatUsers.add);
+      socket.on('user-remove', actions.chatUsers.remove);
 
       socket.on('msg', actions.msgs.addMessage);
 
@@ -56,9 +60,6 @@ const actions = {
   },
 
   chatUsers: {
-    load (users) {
-      dispatch({ type: actionTypes.chatUsers.load, users });
-    },
 
     add (username) {
       dispatch({ type: actionTypes.chatUsers.add, username });
@@ -71,9 +72,10 @@ const actions = {
 };
 
 function addItemToState (state, item) {
-  const newState = [ ...state ];
-  newState.push(item);
-  return newState;
+  return [
+    ...state,
+    item
+  ]
 }
 
 function addUserToState (state, username) {
@@ -111,12 +113,12 @@ const reducers = {
 
   chatUsers: function (state = [ ], action) {
     switch (action.type) {
-      case actionTypes.user.load: return action.users;
+      case actionTypes.user.login: return action.users;
 
-      case actionTypes.user.add:
+      case actionTypes.chatUsers.add:
         return addUserToState(state, action.username);
 
-      case actionTypes.user.remove:
+      case actionTypes.chatUsers.remove:
         return removeUserInState(state, action.username);
 
       default: return state;

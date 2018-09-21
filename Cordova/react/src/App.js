@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect, Provider } from 'react-redux';
+import moment from 'moment'
 
 import './App.css';
 
@@ -14,12 +15,34 @@ class FormAddMsg extends Component {
 
   render () {
     return (
-      <form onSubmit={ this.handleSubmit.bind(this) }>
+      <form style={{
+        position: "fixed",
+        bottom: 0,
+        width: "100%",
+        background: "white",
+        borderTop: "1px solid black",
+        padding: 0,
+      }} onSubmit={ this.handleSubmit.bind(this) }>
         <input
+        placeholder="Digite aqui..."
+        style={{
+          width: "calc(100% - 70px)",
+          height: "40px"
+        }}
           onChange={ this.handleChangeInput.bind(this) }
           value={ this.state.msg } />
 
-        <button type='submit'>enviar</button>
+        <button
+        style={{
+          float: "right",
+          height: "40px",
+          fontSize: "13px",
+          background: "lightgrey",
+          borderRadius: "8px",
+          marginRight: "8px",
+          marginTop: "3px"
+        }}
+         type='submit'>enviar</button>
       </form>
     );
   }
@@ -105,25 +128,26 @@ class FormServer extends Component {
 class ChatRoom extends Component {
   render () {
     return (
-      <div
-        style={ { width: '100%', display: 'flex', flexdirection: 'row' } }
-        className='chat-room-wrapper'>
-
+      <div>
         <div
-          style={ { flex: 1 } }
-          className='chat-window'>
-          { this.props.msgs.map(this.renderMsg.bind(this)) }
+          style={ { width: '100%', display: 'flex', flexdirection: 'row' } }
+          className='chat-room-wrapper'>
 
-          <br />
-          <FormAddMsg onSubmit={ this.handleSubmit.bind(this) } />
+          <div
+            style={ { width: '30%', borderLeft: '1px solid #F0F0F0' } }
+            className='chat-users'>
+            { this.props.chatUsers.map(this.renderUser.bind(this)) }
+          </div>
+
+          <div
+            style={ { flex: 1 } }
+            className='chat-window'>
+            { this.props.msgs.map(this.renderMsg.bind(this)) }
+
+            <br />
+          </div>
         </div>
-
-        <div
-          style={ { width: '250px', borderLeft: '1px solid #F0F0F0' } }
-          className='chat-users'>
-          { this.props.chatUsers.map(this.renderUser.bind(this)) }
-        </div>
-
+        <FormAddMsg onSubmit={ this.handleSubmit.bind(this) } />
       </div>
     );
   }
@@ -134,16 +158,17 @@ class ChatRoom extends Component {
 
   renderMsg (msg, index) {
     if (msg.system) {
+      
       return (
         <p key={ index }>
-          [{ msg.date }] { msg.msg }
+          [{ moment(msg.date).format("HH:mm") }] { msg.msg }
         </p>
       );
     }
 
     return (
       <p key={ index }>
-        [{ msg.date }] { msg.userName }: { msg.msg }
+        [{ moment(msg.date).format("HH:mm") }] { msg.userName }: { msg.msg }
       </p>
     );
   }
@@ -197,8 +222,11 @@ class App extends Component {
     return (
       <Provider store={ store }>
         <div className="App">
-          <header className="App-header">
-            <h1 className="App-title">Welcome to ComputaChat</h1>
+          <header className="app-header">
+            <a href='/'>
+              <img className="app-logo" />
+            </a>
+            <h2 className="title">Fauschat</h2>
           </header>
 
           <AppContainer />
