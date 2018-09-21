@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget android-versionCode="1" id="com.enguniararas.computachat" ios-CFBundleVersion="1" version="1.3.1" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
+    <name>ComputaChat</name>
+    <description>
+     ComputaChat App
+    </description>
+    <author email="gdragoni@luxfacta.com" href="https://www.luxfacta.com/">
+      Eng Computação
+    </author>
+    <preference name="permissions" value="none" />
+    <preference name="orientation" value="portrait" />
+    <preference name="target-device" value="handset" />
+    <preference name="detect-data-types" value="true" />
+    <preference name="android-minSdkVersion" value="16" />
+    <preference name="android-installLocation" value="preferExternal" />
+    <preference name="android-manifest/@android:installLocation" value="preferExternal" />
+    <preference name="AndroidPersistentFileLocation" value="Compatibility" />
+    <preference name="ShowSplashScreenSpinner" value="false" />
+    <preference name="SplashScreenDelay" value="5000" />
+    <preference name="AutoHideSplashScreen" value="true" />
+    <preference name="SplashMaintainAspectRatio" value="true" />
+    <hook src="scripts/appBeforeBuild.js" type="before_build" />
+    <platform name="android">
+        <preference name="android-manifest/application/activity/@android:theme" value="@android:style/Theme.Holo.Light" />
+        <preference name="disallowOverscroll" value="true" />
+        <preference name="webviewbounce" value="false" />
+    </platform>
+    <platform name="ios">
+        <preference name="StatusBarOverlaysWebView" value="false" />
+        <preference name="StatusBarBackgroundColor" value="#000000" />
+        <preference name="StatusBarStyle" value="lightcontent" />
+        <preference name="SuppressesLongPressGesture" value="false" />
+        <preference name="HideMousePointer" value="0" />
+        <preference name="DisallowOverscroll" value="true" />
+        <preference name="webviewbounce" value="false" />
+    </platform>
+    <platform name="wp8">
+    </platform>
+    <platform name="windows">
+    </platform>
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    <content src="index.html" />
+    <platform name="android">
+        <allow-intent href="market:*" />
+    </platform>
+    <platform name="ios">
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
+        <allow-navigation href="http://*/*" />
+    </platform>
+    <engine name="android" spec="^6.4.0" />
+    <engine name="ios" spec="^4.5.4" />
+    <plugin name="cordova-custom-config" spec="^4.0.2" />
+    <plugin name="cordova-plugin-add-swift-support" spec="^1.7.2" />
+    <plugin name="cordova-plugin-device" spec="^1.1.7" />
+</widget>

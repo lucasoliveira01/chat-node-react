@@ -1,0 +1,251 @@
+//@flow
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
+import { applyMiddleware, createStore, compose } from "redux";
+import { hashHistory, Router, Route, IndexRoute } from "react-router";
+import {
+  syncHistoryWithStore,
+  routerMiddleware,
+  goBack
+} from "react-router-redux";
+import createLogger from "redux-logger";
+import thunk from "redux-thunk";
+import promise from "redux-promise";
+
+import T from "i18n-react";
+import {
+  setOnLine,
+  setDefaultProperties,
+  setErrorMessage,
+  regiterFCMEvents
+} from "./actions/index";
+
+import appReducer from "./reducers/index";
+import Initial from "./screens/Initial";
+import RecoverPassword from "./screens/RecoverPassword";
+import Protocols from "./screens/Protocols/Protocols";
+import ProtocolsFilter from "./screens/Protocols/ProtocolsFilter";
+import ProtocolDetail from "./screens/Protocols/ProtocolDetail";
+import Expenses from "./screens/Expenses/Expenses";
+import ExpensesDetail from "./screens/Expenses/ExpensesDetail";
+import EditExpenses from "./screens/Expenses/EditExpenses";
+import GeneralResults from "./screens/Expenses/GeneralResults";
+import JustifyExpenses from "./screens/Expenses/JustifyExpenses";
+import IncludeExpenses from "./screens/Expenses/IncludeExpenses";
+import ExpensesFilter from "./screens/Expenses/ExpensesFilter";
+import Information from "./screens/Information/Information";
+import Accommodation from "./screens/Information/Accommodation";
+import ProtocolConciliation from "./screens/CardExpenses/ProtocolConciliation";
+import Passages from "./screens/Information/Passages";
+import VehicleRental from "./screens/Information/VehicleRental";
+import Ticket from "./screens/Ticket/Ticket";
+import TicketList from "./screens/Ticket/TicketList";
+import Message from "./screens/Message/Message";
+import Conciliation from "./screens/Conciliation/Conciliation";
+import VehicleDetail from "./screens/Information/InformationDetails/VehicleDetail";
+import AccommodationDetail from "./screens/Information/InformationDetails/AccommodationDetail";
+import PassagesDetail from "./screens/Information/InformationDetails/PassagesDetail";
+import CardExpenses from "./screens/CardExpenses/CardExpenses";
+import CardExpenseInfo from "./screens/CardExpenses/CardExpenseInfo";
+import CardExpensesFilter from "./screens/CardExpenses/CardExpensesFilter";
+import CardExpenseConciliation from "./screens/CardExpenses/CardExpenseConciliation";
+import InternationalReturns from "./screens/InternationalReturns/InternationalReturns";
+import InternationalConciliation from "./screens/InternationalReturns/InternationalConciliation";
+import InternationalExpensesConciliation from "./screens/InternationalReturns/InternationalExpensesConciliation";
+import ReturnValuesEdit from "./screens/InternationalReturns/ReturnValuesEdit";
+import RequestTravelMainScreen from "./screens/RequestTravel/RequestTravelMainScreen";
+import Intinerary from "./screens/RequestTravel/Intinerary";
+import ThirdTrip from "./screens/RequestTravel/ThirdTrip";
+import AddStretch from "./screens/RequestTravel/AddStretch";
+import SummaryContent from "./screens/RequestTravel/SummaryContent";
+import Approvals from "./screens/Approval/Approvals";
+import ApprovalExpenseDetail from "./screens/Approval/ApprovalExpenseDetail";
+import ApprovalProtocolsFilter from "./screens/Approval/ApprovalProtocolsFilter";
+import SearchFlightFilter from "./screens/RequestTravel/SearchFlightFilter";
+import SearchFlight from "./screens/RequestTravel/SearchFlight";
+import SearchFlightDetail from "./screens/RequestTravel/SearchFlightDetail";
+import FlightSummary from "./screens/RequestTravel/FlightSummary";
+import ViewContract from "./screens/RequestTravel/ViewContract";
+import ApprovalDetails from "./screens/Approval/ApprovalDetails";
+import QuotesContent from "./screens/Quotes/QuotesContent";
+import QuotesSummary from "./screens/Quotes/QuotesSummary";
+import QuoteFlightDetail from "./screens/Quotes/QuoteFlightDetail";
+import ApprovalAccountability from "./screens/Approval/ApprovalAccountability";
+import ProtocolHistory from "./screens/History/ProtocolHistory";
+import TracertView from "./screens/History/TracertView";
+import AdvanceMoney from "./screens/History/AdvanceMoney";
+import ApprovalHistory from "./screens/History/ApprovalHistory";
+import SummaryDevolutionTicket from "./screens/Protocols/SummaryDevolutionTicket";
+import ItineraryPicker from "./screens/RequestTravel/ItineraryPicker";
+import FlightSelected from "./screens/RequestTravel/FlightSelected";
+import TravelRules from "./screens/TravelRules/TravelRules";
+import TravelRulesFilter from "./screens/TravelRules/TravelRulesFilter";
+
+var env = require("../env.js");
+
+const middleware = [thunk, promise, routerMiddleware(hashHistory)];
+
+if (env === "development") {
+  console.log("dev");
+  const logger = createLogger();
+  middleware.push(logger);
+}
+
+const store = createStore(
+  appReducer,
+  compose(
+    applyMiddleware(...middleware),
+    window.devToolsExtension ? window.devToolsExtension() : f => f
+  )
+);
+
+store.dispatch(setDefaultProperties());
+
+const history = syncHistoryWithStore(hashHistory, store);
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+  onOnLine() {
+    setInterval(() => {
+      store.dispatch(setOnLine(true));
+      store.dispatch(setErrorMessage(T.translate("disconnected")));
+    }, 1500);
+  }
+
+  onOffline() {
+    store.dispatch(setOnLine(false));
+  }
+  backButtonFunction = () => (dispatch, getState) => {
+    if (!getState().property.loading) {
+      dispatch(getState().property.backAndroid());
+    }
+  };
+  componentDidMount() {
+    setTimeout(() => store.dispatch(regiterFCMEvents()), 2000);
+    document.addEventListener(
+      "backbutton",
+      () => store.dispatch(this.backButtonFunction()),
+      false
+    );
+    document.addEventListener("online", this.onOnLine, false);
+    document.addEventListener("offline", this.onOffline, false);
+  }
+  render() {
+    return (
+      <Provider store={store}>
+        <Router history={history}>
+          <Route path="/">
+            <IndexRoute component={Initial} />
+            <Route path="/recoverPassword" component={RecoverPassword} />
+            <Route path="/protocols" component={Protocols} />
+            <Route path="/protocolsFilter" component={ProtocolsFilter} />
+            <Route path="/protocolDetail" component={ProtocolDetail} />
+            <Route path="/expenses" component={Expenses} />
+            <Route path="/expensesDetail" component={ExpensesDetail} />
+            <Route path="/includeExpenses" component={IncludeExpenses} />
+            <Route path="/editExpenses" component={EditExpenses} />
+            <Route path="/justifyExpenses" component={JustifyExpenses} />
+            <Route path="/expensesFilter" component={ExpensesFilter} />
+            <Route path="/information" component={Information} />
+            <Route path="/ticket" component={Ticket} />
+            <Route path="/ticketList" component={TicketList} />
+            <Route path="/message" component={Message} />
+            <Route path="/conciliation" component={Conciliation} />
+            <Route
+              path="/protocolConciliation"
+              component={ProtocolConciliation}
+            />
+            <Route path="/accommodation" component={Accommodation} />
+            <Route
+              path="/accommodationDetail"
+              component={AccommodationDetail}
+            />
+            <Route path="/passages" component={Passages} />
+            <Route path="/passagesDetail" component={PassagesDetail} />
+            <Route path="/vehicleRental" component={VehicleRental} />
+            <Route path="/vehicleDetail" component={VehicleDetail} />
+            <Route path="/cardExpenses" component={CardExpenses} />
+            <Route path="/cardExpensesFilter" component={CardExpensesFilter} />
+            <Route
+              path="/cardExpenseConciliation"
+              component={CardExpenseConciliation}
+            />
+            <Route
+              path="/internationalReturns"
+              component={InternationalReturns}
+            />
+            <Route
+              path="/internationalConciliation"
+              component={InternationalConciliation}
+            />
+            <Route
+              path="/internationalExpensesConciliation"
+              component={InternationalExpensesConciliation}
+            />
+            <Route path="/returnValuesEdit" component={ReturnValuesEdit} />
+            <Route path="/cardExpenseInfo" component={CardExpenseInfo} />
+            <Route path="/requestTravel" component={RequestTravelMainScreen} />
+            <Route path="/intinerary" component={Intinerary} />
+            <Route path="/thirdTrip" component={ThirdTrip} />
+            <Route path="/addStretch" component={AddStretch} />
+            <Route path="/summaryContent" components={SummaryContent} />
+            <Route path="/searchFlight" components={SearchFlight} />
+            <Route path="/searchFlightFilter" components={SearchFlightFilter} />
+            <Route path="/approvalProtocols" component={Approvals} />
+            <Route
+              path="/approvalProtocolsFilter"
+              component={ApprovalProtocolsFilter}
+            />
+            <Route path="/approvalDetail" component={ApprovalDetails} />
+            <Route path="/searchFlightDetail" component={SearchFlightDetail} />
+            <Route path="/flightSummary" component={FlightSummary} />
+            <Route path="/viewContract" component={ViewContract} />
+            <Route path="/quotesContent" component={QuotesContent} />
+            <Route path="/quotesSummary" component={QuotesSummary} />
+            <Route
+              path="/approvalAccountability"
+              component={ApprovalAccountability}
+            />
+            <Route path="/history" component={ProtocolHistory} />
+            <Route path="/tracertView" component={TracertView} />
+            <Route path="/advanceMoney" component={AdvanceMoney} />
+            <Route path="/approvalHistory" component={ApprovalHistory} />
+            <Route
+              path="/summaryDevolutionTicket"
+              component={SummaryDevolutionTicket}
+            />
+            <Route path="/quoteFlightDetail" component={QuoteFlightDetail} />
+            <Route path="/itineraryPicker" component={ItineraryPicker} />
+            <Route path="/generalResults" component={GeneralResults} />
+            <Route path="/flightSelected" component={FlightSelected} />
+            <Route
+              path="/approvalExpenseDetail"
+              component={ApprovalExpenseDetail}
+            />
+            <Route path="/travelRules" component={TravelRules} />
+            <Route path="/travelRulesFilter" component={TravelRulesFilter} />
+          </Route>
+        </Router>
+      </Provider>
+    );
+  }
+}
+
+const onDeviceReady = () => {
+  ReactDOM.render(<App />, document.getElementById("app"));
+};
+
+if (navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) {
+  document.addEventListener("deviceready", onDeviceReady, false);
+} else {
+  window.AppVersion = {
+    version: 0,
+    build: 0
+  };
+  onDeviceReady();
+}
+
+// onDeviceReady();

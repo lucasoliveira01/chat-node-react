@@ -1,0 +1,21 @@
+{
+    "prepare_queue": {
+        "installed": [],
+        "uninstalled": []
+    },
+    "config_munge": {
+        "files": {}
+    },
+    "installed_plugins": {
+        "cordova-custom-config": {
+            "PACKAGE_NAME": "com.enguniararas.computachat"
+        },
+        "cordova-plugin-add-swift-support": {
+            "PACKAGE_NAME": "com.enguniararas.computachat"
+        },
+        "cordova-plugin-device": {
+            "PACKAGE_NAME": "com.enguniararas.computachat"
+        }
+    },
+    "dependent_plugins": {}
+}
