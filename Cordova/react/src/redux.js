@@ -41,7 +41,7 @@ const actions = {
         user,
         allUsers,
       } = response
-      dispatch({ type: actionTypes.user.login, username: user.name, users: allUsers });
+      dispatch({ type: actionTypes.user.login, username: user.name, users: allUsers.map(u => ({name: u, color: geraCorDoPablo()})) });
     },
 
     registerServer (ip) {
@@ -62,7 +62,10 @@ const actions = {
   chatUsers: {
 
     add (username) {
-      dispatch({ type: actionTypes.chatUsers.add, username });
+      dispatch({ type: actionTypes.chatUsers.add, user: {
+        name: username,
+        color: geraCorDoPablo()
+      }});
     },
 
     remove (username) {
@@ -116,7 +119,7 @@ const reducers = {
       case actionTypes.user.login: return action.users;
 
       case actionTypes.chatUsers.add:
-        return addUserToState(state, action.username);
+        return addUserToState(state, action.user);
 
       case actionTypes.chatUsers.remove:
         return removeUserInState(state, action.username);
@@ -137,3 +140,13 @@ const store = createStore(combineReducers(reducers));
 const dispatch = store.dispatch;
 
 export { actions, store };
+
+const geraCorDoPablo = () => {
+  var letras = ["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"];
+  var cor = "#";
+  for(let i = 0; i < 6; i++) {
+
+          cor = cor.concat(letras[Math.floor((Math.random() * 16) )]);
+      }
+      return cor;
+}

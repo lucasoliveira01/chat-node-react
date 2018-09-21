@@ -165,9 +165,12 @@ class ChatRoom extends Component {
         </p>
       );
     }
+    let user = this.props.chatUsers.find(u => u.name == msg.userName)
 
     return (
-      <p key={ index }>
+      <p style={{
+        color: user ? user.color : black
+      }} key={ index }>
         [{ moment(msg.date).format("HH:mm") }] { msg.userName }: { msg.msg }
       </p>
     );
@@ -175,8 +178,10 @@ class ChatRoom extends Component {
 
   renderUser (userName, index) {
     return (
-      <p key={ index }>
-        { userName }
+      <p style={{
+        color: userName.color
+      }} key={ index }>
+        { userName.name }
       </p>
     );
   }
