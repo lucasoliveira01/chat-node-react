@@ -1,79 +1,58 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+
 const http = require('http');
 const socketIo = require('socket.io');
 
-const server = http.createServer(function (req, res) {});
+const port = process.env.SOCKET_PORT || 9010;
+
+const server = http.createServer(function (req, res) { });
 const io = socketIo(server);
 
-const port = 9010;
-
-const users = [];
-
-
-
+const users = [ ];
 io.on('connection', function (socket) {
   let userName;
 
-  socket.on('try-login', function (name) {
-    console.log('login');
+  socket.on('try-add-user', function (name) {
     if (users.indexOf(name) > -1) {
-      return socket.emit('login-failed', 'Ja tem um login com esse nick na area!');
+      return socket.emit('login-error', 'Ja ta dentro esse login!');
+    }
+
+    if (!name) {
+      return socket.emit('login-error', 'Coloca um login ae!');
     }
 
     userName = name;
-    users.push(userName);
+    users.push(name);
 
-    var d = new Date();
-    var datestring = d.getHours() + ":" + d.getMinutes();
+    socket.emit('login-success', { user: { name }, allUsers: users });
 
-    const msgObj = {
-      system: true,
-      msg: `${name} entrou na sala...`,
-      date: datestring
-    };
+    const msg = `${name} chegou...`;
+    const msgObj = { system: true, date: new Date(), msg };
 
     socket.broadcast.emit('msg', msgObj);
     socket.emit('msg', msgObj);
 
-    socket.emit('all-users', users);
-    socket.emit('login-success', userName);
-
-    socket.broadcast.emit('add-user', userName);
-  });
-
-  socket.on('msg', function (msg) {
-    var d = new Date();
-    var datestring = d.getHours() + ":" + d.getMinutes();
-
-    const msgObj = {
-      userName,
-      msg,
-      date: datestring
-    };
-
-    socket.broadcast.emit('msg', msgObj);
-    socket.emit('msg', msgObj);
+    socket.broadcast.emit('user-add', userName);
   });
 
   socket.on('disconnect', function () {
+    if (!userName) return;
 
-    if (userName != null) {
-      users.splice(users.indexOf(userName), 1);
+    users.splice(users.indexOf(userName), 1);
 
-      socket.broadcast.emit('user-disconnect', userName);
-      var d = new Date();
-      var datestring = d.getHours() + ":" + d.getMinutes();
+    const msg = `${userName} saiu fora...`;
+    socket.broadcast.emit('msg', { system: true, date: new Date(), msg });
+    socket.broadcast.emit('user-remove', userName);
+  });
 
-      const msgObj = {
-        system: true,
-        msg: `${userName} saiu da sala... :(`,
-        date: datestring
-      };
+  socket.on('msg', function (msg) {
+    const msgObj = { userName, date: new Date(), msg };
 
-      socket.broadcast.emit('msg', msgObj);
-    }
+    socket.broadcast.emit('msg', msgObj);
+    socket.emit('msg', msgObj);
   });
 });
 
-
 server.listen(port);
-console.log(`socket alive at ${port}`);
+console.log(`Socket ALIIIIVE on port ${port}`);

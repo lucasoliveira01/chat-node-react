@@ -1,163 +1,105 @@
 import React, { Component } from 'react';
-import { connect, Provider } from 'react-redux';
 
-import logo from './faustop.svg';
-import './App.css';
+import logo from './img/logo.svg';
+import './styles/App.css';
 
-import { actions, store } from './redux';
+import ChatRoom from './components/ChatRoom';
+import LoginForm from './components/LoginForm';
 
-class FormAddMsg extends Component {
-  constructor (props) {
-    super(props);
+import Button from 'material-ui/Button';
+import Dialog, {
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from 'material-ui/Dialog';
 
-    this.state = { msg: '' };
-  }
+import { Provider, connect } from 'react-redux';
 
-  render () {
-    return (
-      <form onSubmit={ this.handleSubmit.bind(this) }>
-        <input
-          onChange={ this.handleChangeInput.bind(this) }
-          value={ this.state.msg } />
+import redux from './redux';
 
-        <button type='submit'>enviar</button>
-      </form>
-    );
-  }
+class AlertDialog extends React.Component {
+  state = {
+    open: false,
+  };
 
-  handleSubmit (ev) {
-    ev.preventDefault();
-    this.props.onSubmit(this.state);
-    this.setState({ msg: '' });
-  }
+  handleClickOpen = () => {
+    this.setState({ open: true });
+  };
 
-  handleChangeInput (ev) {
-    this.setState({ msg: ev.target.value });
-  }
-}
+  handleClose = () => {
+    this.setState({ open: false });
+  };
 
-class FormLogin extends Component {
-  constructor (props) {
-    super(props);
-
-    this.state = { loginName: '' };
-  }
-
-  render () {
-    return (
-      <form onSubmit={ this.handleSubmit.bind(this) }>
-        <input
-          onChange={ this.handleChangeInput.bind(this) }
-          value={ this.state.loginName } />
-
-        <button type='submit'>entrar</button>
-      </form>
-    );
-  }
-
-  handleSubmit (ev) {
-    ev.preventDefault();
-    this.props.onSubmit(this.state);
-  }
-
-  handleChangeInput (ev) {
-    this.setState({ loginName: ev.target.value });
-  }
-}
-
-class ChatRoom extends Component {
-  render () {
-    return (
-      <div
-        style={ { width: '100%' } }
-        className='chat-room-wrapper'>
-
-        <div
-          style={ { flex: 1 } }
-          className='chat-window'>
-          { this.props.msgs.map(this.renderMsg.bind(this)) }
-
-          <br />
-          <FormAddMsg onSubmit={ this.handleSubmit.bind(this) } />
-        </div>
-
-        <div
-          style={ { width: '250px', borderLeft: '1px solid #F0F0F0' } }
-          className='chat-users'>
-          { this.props.chatUsers.map(this.renderUser.bind(this)) }
-        </div>
-
-      </div>
-    );
-  }
-
-  handleSubmit (values) {
-    actions.msgs.send(values.msg);
-  }
-
-  renderMsg (msg, index) {
-    if (msg.system) {
-      return (
-        <p key={ index }>
-          [{ msg.date }] { msg.msg }
-        </p>
-      );
-    }
-
-    return (
-      <p key={ index }>
-        [{ msg.date }] { msg.userName }: { msg.msg }
-      </p>
-    );
-  }
-
-  renderUser (userName, index) {
-    return (
-      <p key={ index }>
-        { userName }
-      </p>
-    );
-  }
-}
-
-const ChatRoomContainer = connect((s) => {
-  return { msgs: s.msgs, chatUsers: s.chatUsers };
-})(ChatRoom);
-
-class AppContent extends Component {
   render() {
     return (
-      <div>
-        { !this.props.user &&
-          <FormLogin onSubmit={ this.handleSubmit.bind(this) } /> }
+      <Dialog
+        open={this.state.open}
+        onClose={this.handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description">
+        <DialogTitle id="alert-dialog-title">Error!</DialogTitle>
+        <DialogContent style={ { minWidth: '200px' } }>
+          <DialogContentText id="alert-dialog-description">
+            { this.props.error }
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={this.handleClose} color="primary" autoFocus>
+            ok
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
+}
 
-        { this.props.user &&
-          <ChatRoomContainer /> }
+class AppComponentWrapper extends Component {
+  render () {
+    return (
+      <div className='app'>
+        <AlertDialog error={ this.props.error } ref='alert' />
+
+        <header className="app-header">
+          <a href='/'>
+            <img src={logo} className="app-logo" alt="logo" />
+          </a>
+        <h2 className="title">Fauschat</h2>
+        </header>
+
+        <div style={ { padding: '10px' } }>
+          { !this.props.user &&
+            <LoginForm onSubmit={ this.handleLoginSubmit.bind(this) } /> }
+
+          { this.props.user && <ChatRoom /> }
+        </div>
+
       </div>
     );
   }
 
-  handleSubmit (values) {
-    actions.user.tryLogin(values.loginName);
+  handleLoginSubmit (values) {
+    redux.user.actions.login(values.userName);
+  }
+
+  componentDidUpdate () {
+    if (this.props.error) {
+      this.refs.alert.setState({ open: true });
+    }
   }
 }
-
 const AppContainer = connect((s) => {
-  return { user: s.user };
-})(AppContent);
+  return {
+    user: !s.user || !s.user.error ? s.user : null,
+    error: s.user && s.user.error ? s.user.error : null
+  };
+})(AppComponentWrapper);
 
 class App extends Component {
   render() {
     return (
-      <Provider store={ store }>
-        <div className="App">
-          <header className="App-header">
-            <img src={logo} className="App-logo" alt="logo" />
-            <h1 className="App-title">Bem vindo ao Fauschat</h1>
-          </header>
-
-          <AppContainer />
-        </div>
+      <Provider store={ redux.store }>
+        <AppContainer />
       </Provider>
     );
   }

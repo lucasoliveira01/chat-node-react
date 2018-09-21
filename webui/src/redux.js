@@ -1,121 +1,153 @@
 import { createStore, combineReducers } from 'redux';
 import io from 'socket.io-client';
 
-const socketUrl = 'http://localhost:9010'; //ip de teste, so funciona na propria maquina
-// const socketUrl = 'http://192.168.2.100:9010'; //Ip notebook lucas no roteador
-// const socketUrl = 'https://chat-redes-test.herokuapp.com/9010';
-const socket = io(socketUrl);
+const config = process.env.NODE_ENV === 'development' ?
+                require('./config/local') :
+                require('./config/prod');
 
-const actionTypes = {
-  user: {
-    login: 'user_login'
+const socket = io.connect(config.urls.socket);
+
+function dispatch (action) { return store.dispatch(action); }
+
+// users
+const userInitialState = null;
+const userActionTypes = {
+  loginStart: 'user_login_start',
+  loginFail: 'user_login_fail',
+  login: 'user_login',
+
+  disconnect: 'user_disconnect'
+};
+
+const userActions = {
+  login (userName) {
+    dispatch({ type: userActionTypes.loginStart, userName });
+    socket.emit('try-add-user', userName);
   },
 
-  chatUsers: {
-    load: 'chatUsers_load',
-    add: 'chatUsers_add',
-    remove: 'chatUsers_remove'
+  loginError (msg) {
+    dispatch({
+      type: userActionTypes.loginFail, msg });
   },
 
-  msgs: {
-    add: 'msgs_add'
+  loginSuccess ({ user, allUsers }) {
+    dispatch({ type: userActionTypes.login, user, allUsers });
+  },
+
+  disconnect () {
+    dispatch({ type: userActionTypes.disconnect });
   }
 };
 
-const actions = {
-  msgs: {
-    send (msg) {
-      socket.emit('msg', msg);
-    },
+socket.on('login-already-in', userActions.loginAlreadyIn);
+socket.on('login-success', userActions.loginSuccess);
+socket.on('login-error', userActions.loginError);
+socket.on('disconnect', userActions.disconnect);
 
-    addMessage (msg) {
-      dispatch({ type: actionTypes.msgs.add, msg });
-    }
+function userReducer (state = userInitialState, action) {
+  switch (action.type) {
+    case userActionTypes.disconnect: return null;
+    case userActionTypes.login: return action.user;
+    case userActionTypes.loginFail: return { error: action.msg };
+    default: return state;
+  }
+}
+// *** users
+
+// msgs
+const msgInitialState = [ ];
+const msgActionTypes = {
+  msgIncoming: 'msg_incoming',
+};
+
+
+const msgActions = {
+  incoming (msg) {
+    dispatch({ type: msgActionTypes.msgIncoming, msg });
   },
 
-  user: {
-    tryLogin (username) {
-      socket.emit('try-login', username);
-    },
+  send (msg) {
+    socket.emit('msg', msg);
+  }
+};
+socket.on('msg', msgActions.incoming);
 
-    login (username) {
-      dispatch({ type: actionTypes.user.login, username });
-    }
+function addMsgToState (state, msg) {
+  const newState = [ ...state ];
+
+  newState.push(msg);
+  return newState;
+}
+
+function msgReducer (state = msgInitialState, action) {
+  switch (action.type) {
+    case userActionTypes.disconnect: return msgInitialState;
+    case msgActionTypes.msgIncoming: return addMsgToState(state, action.msg);
+    default: return state;
+  }
+}
+// ** msgs
+
+// usersInChat
+const usersInChatInitialState = [ ];
+const usersInChatActionTypes = {
+  addedUser: 'users_in_chat_added_user',
+  removedUser: 'users_in_chat_removed_user',
+};
+
+const usersInChatActions = {
+  add (userName) {
+    dispatch({ type: usersInChatActionTypes.addedUser, userName });
   },
 
-  chatUsers: {
-    load (users) {
-      dispatch({ type: actionTypes.chatUsers.load, users });
-    },
-
-    add (username) {
-      dispatch({ type: actionTypes.chatUsers.add, username });
-    },
-
-    remove (username) {
-      dispatch({ type: actionTypes.chatUsers.remove, username });
-    }
+  remove (userName) {
+    dispatch({ type: usersInChatActionTypes.removedUser, userName });
   }
 };
 
-function addItemToState (state, item) {
-  const newState = [ ...state ];
-  newState.push(item);
-  return newState;
-}
+function usersSort (a, b) { return a > b ? 1 : -1; }
 
-function addUserToState (state, username) {
-  return addItemToState(state, username);
-}
-function addMsgToState (state, msg)  {
-  return addItemToState(state, msg);
-}
+function usersInChatReducer (state = usersInChatInitialState, action) {
+  switch (action.type) {
+    case userActionTypes.disconnect: return usersInChatInitialState;
+    case userActionTypes.login: return [ ...action.allUsers ].sort(usersSort);
 
-function removeUserInState (state, username) {
-  const newState = [ ...state ];
-  newState.splice(newState.indexOf(username), 1);
-  return newState;
-}
+    case usersInChatActionTypes.addedUser: {
+      const newState = [ ...state ];
 
-const reducers = {
-  user: function (state = null, action) {
-    switch (action.type) {
-      case actionTypes.user.login: return action.username;
-      default: return state;
+      newState.push(action.userName);
+      newState.sort(usersSort);
+
+      return newState;
     }
-  },
 
-  chatUsers: function (state = [ ], action) {
-    switch (action.type) {
-      case actionTypes.user.load: return action.users;
+    case usersInChatActionTypes.removedUser: {
+      const newState = [ ...state ];
+      newState.splice(newState.indexOf(action.userName), 1);
 
-      case actionTypes.user.add:
-        return addUserToState(state, action.username);
-
-      case actionTypes.user.remove:
-        return removeUserInState(state, action.username);
-
-      default: return state;
+      return newState;
     }
-  },
 
-  msgs: function (state = [ ], action) {
-    switch (action.type) {
-      case actionTypes.msgs.add: return addMsgToState(state, action.msg);
-      default: return state;
-    }
-  },
+
+    default: return state;
+  }
+}
+
+socket.on('user-remove', usersInChatActions.remove);
+socket.on('user-add', usersInChatActions.add);
+
+// *** users in chat
+
+const reducers = combineReducers({
+  usersInChat: usersInChatReducer,
+  user: userReducer,
+  msgs: msgReducer
+});
+const store = createStore(reducers);
+
+export default {
+  usersInChat: { actions: usersInChatActions },
+  user: { actions: userActions },
+  msgs: { actions: msgActions },
+  store
 };
-
-socket.on('login-success', actions.user.login);
-
-socket.on('all-users', actions.chatUsers.load);
-socket.on('add-user', actions.chatUsers.add);
-socket.on('user-disconnect', actions.chatUsers.remove);
-
-socket.on('msg', actions.msgs.addMessage);
-
-const store = createStore(combineReducers(reducers));
-const dispatch = store.dispatch;
-
-export { actions, store };
