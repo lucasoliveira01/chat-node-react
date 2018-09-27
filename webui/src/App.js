@@ -64,7 +64,7 @@ class AppComponentWrapper extends Component {
           <a href='/'>
             <img src={logo} className="app-logo" alt="logo" />
           </a>
-        <h2 className="title">Fauschat</h2>
+        <h2 className="title">Fauschat Web</h2>
         </header>
 
         <div style={ { padding: '10px' } }>

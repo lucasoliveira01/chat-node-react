@@ -6,8 +6,15 @@ const socketIo = require('socket.io');
 
 const port = process.env.SOCKET_PORT || 9010;
 
-const server = http.createServer(function (req, res) { });
+const server = http.createServer(function (req, res) { 
+  res.header("Access-Control-Allow-Origin", 'http://192.168.2.105:9010'); //<--
+  res.header("Access-Control-Allow-Credentials", true);
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header("Access-Control-Allow-Headers",
+'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json,Authorization');
+});
 const io = socketIo(server);
+// io.origins('http://192.168.2.105:9010') // for latest version
 
 const users = [ ];
 io.on('connection', function (socket) {

@@ -1,5 +1,5 @@
 module.exports = {
   urls: {
-    socket: 'http://localhost:9010'
+    socket: 'http://192.168.2.105:9010'
   }
 };
